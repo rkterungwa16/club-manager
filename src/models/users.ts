@@ -1,29 +1,33 @@
-import { DatasourceConnection } from '../datasource';
-import { UserModelInterface } from './model.types';
+import { DatasourceConnection } from "../datasource";
+import { UsersModelInterface } from "./model.types";
 
 const mongooseConnection = DatasourceConnection.databaseConnection;
 
-import { Schema } from 'mongoose';
+import { Schema } from "mongoose";
 
-class UserSchema {
-  static get schema() {
-    return new Schema({
-      name: {
-        type: String,
-      },
-      email: {
-        type: String,
-        required: true,
-      },
-      password: {
-        type: String,
-        required: true,
-      },
-      roles: {
-        type: [String],
-      },
-    });
-  }
+class UsersSchema {
+    static get schema() {
+        return new Schema({
+            name: {
+                type: String
+            },
+            email: {
+                type: String,
+                required: true
+            },
+            salt: {
+                type: String,
+                require: true
+            },
+            password: {
+                type: String,
+                required: true
+            }
+        });
+    }
 }
 
-export const Users = mongooseConnection.model<UserModelInterface>('Users', UserSchema.schema);
+export const Users = mongooseConnection.model<UsersModelInterface>(
+    "Users",
+    UsersSchema.schema
+);

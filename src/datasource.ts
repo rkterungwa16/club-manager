@@ -1,9 +1,7 @@
-import * as dotenv from "dotenv";
 import mongoose, { Connection } from "mongoose";
 
 import { appLogger } from "./logger";
 
-dotenv.config();
 const databaseConnectionStartup = appLogger("Database connection startup");
 
 const config = {

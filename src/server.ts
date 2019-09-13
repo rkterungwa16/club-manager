@@ -3,9 +3,10 @@ import express, { NextFunction, Response } from "express";
 import { Inject } from "typescript-ioc";
 import uuid from "uuid";
 import { ClubManagerRoutes } from "./routes";
-import { IRequest } from './types';
+import { IRequest } from "./types";
 
-import { appLogInfoMiddleware } from './logger';
+import { appLogInfoMiddleware } from "./logger";
+import { apiErrorHandler } from "./middlewares";
 
 export class App {
     public static init() {
@@ -17,11 +18,12 @@ export class App {
         app.use((req: IRequest, res: Response, next: NextFunction) => {
             req.requestId = uuid();
             next();
-          });
+        });
 
-          app.use(appLogInfoMiddleware);
+        app.use(appLogInfoMiddleware);
 
         app.use("/api/v1", this.clubManagerRoutes.routes);
+        app.use(apiErrorHandler);
 
         return app;
     }

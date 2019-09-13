@@ -1,7 +1,8 @@
-import { Document } from 'mongoose';
+import { Document } from "mongoose";
 
-export interface UserModelInterface extends Document {
-  name: string;
-  email: string;
-  password: string;
+export interface UsersModelInterface extends Document {
+    name: string;
+    email: string;
+    salt: string;
+    password: string;
 }
