@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { Inject } from "typescript-ioc";
 import { UsersModelInterface } from "./models";
 import { BcryptHasher, ClubManagerError, UsersService } from "./services";
@@ -12,7 +12,11 @@ export class ClubManagerController {
     @Inject
     public passwordHasher!: BcryptHasher;
 
-    public register = async (req: IRequest, res: Response) => {
+    public register = async (
+        req: IRequest,
+        res: Response,
+        next: NextFunction
+    ) => {
         try {
             await this.usersService.confirmUserDoesNotExist(req.body.email);
             const salt = await this.passwordHasher.saltPassword();
@@ -26,32 +30,30 @@ export class ClubManagerController {
                 email: req.body.email as string,
                 name: req.body.name as string
             } as UsersModelInterface;
-            const createdUser = await this.usersService.create(userInfo);
-            delete createdUser.password;
+            const createdUser = await this.usersService.register(userInfo);
+            const createdUserModified = createdUser.toObject();
+            delete createdUserModified.password;
             return res.status(201).send({
                 message: "user successfully created",
-                data: createdUser
+                data: createdUserModified
             });
         } catch (err) {
-            return res.status(err.statusCode).send({
-                message: err.message
-            });
+            next(err);
         }
     };
-    public login = async (req: IRequest, res: Response) => {
+    public login = async (req: IRequest, res: Response, next: NextFunction) => {
         try {
-            // const { path, mimetype } = req.file;
-            // const { booksCollectionName } = req.body;
-            // return res.status(201).send({
-            //     message: "index successfully created",
-            //     data: await this.invertedIndexService.createIndex(path, mimetype, booksCollectionName),
-            // });
-        } catch (error) {
-            // return next(error);
-            return res.status(400).send({
-                message: "bad request",
-                error
+            const { email, password } = req.body;
+            const token = await this.usersService.findAndGenerateToken({
+                email,
+                password
             });
+            return res.status(201).send({
+                message: "user successfully logged in",
+                data: token
+            });
+        } catch (err) {
+            next(err);
         }
     };
 

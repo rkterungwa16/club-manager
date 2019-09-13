@@ -1,34 +1,34 @@
+import * as dotenv from "dotenv";
 import { sign } from "jsonwebtoken";
-import { Model } from "mongoose";
 import { Inject } from "typescript-ioc";
 import { Users, UsersModelInterface } from "../models";
+import { DefaultModelService } from "./default.model.service";
 import { ClubManagerError } from "./error.service";
 import { BcryptHasher } from "./password.hash.service";
-import { PasswordHashService } from "./types";
 
-export class UsersService {
+dotenv.config();
+export class UsersService extends DefaultModelService<UsersModelInterface> {
     @Inject
     public passwordHashService!: BcryptHasher;
-    @Inject
-    public usersModel!: Model<UsersModelInterface>;
     @Inject
     public clubManagerError!: ClubManagerError;
     private jwtSecret: string;
 
     constructor() {
+        super(Users);
         this.jwtSecret = process.env.APP_SECRET as string;
     }
 
-    public async create(
+    public async register(
         credentials: UsersModelInterface
     ): Promise<UsersModelInterface> {
-        return await this.usersModel.create(credentials);
+        return await this.create(credentials);
     }
 
-    public async findOne(email: string): Promise<UsersModelInterface | null> {
-        const user = await this.usersModel.findOne({
-            email
-        });
+    public async findUserByEmail(
+        email: string
+    ): Promise<UsersModelInterface | null> {
+        const user = await this.findOne({ email });
         if (!user) {
             const userNotFoundError = this.clubManagerError;
             userNotFoundError.message = "user does not exist";
@@ -39,25 +39,31 @@ export class UsersService {
         return user;
     }
 
-    public async confirmUserDoesNotExist(email: string): Promise<boolean> {
-        const foundUser = await this.usersModel.findOne({
-            email
-        });
-        if (foundUser) {
-            const userAlreadyExistsError = this.clubManagerError;
-            userAlreadyExistsError.name = "User registration";
-            userAlreadyExistsError.message = "User Already Exists";
-            throw userAlreadyExistsError;
+    public confirmUserDoesNotExist = async (
+        email: string
+    ): Promise<boolean> => {
+        try {
+            const foundUser = await this.findOne({
+                email
+            });
+            if (foundUser) {
+                const userAlreadyExistsError = this.clubManagerError;
+                userAlreadyExistsError.name = "User registration";
+                userAlreadyExistsError.message = "User Already Exists";
+                userAlreadyExistsError.statusCode = 400;
+                throw userAlreadyExistsError;
+            }
+            return true;
+        } catch (err) {
+            throw err;
         }
-
-        return true;
-    }
+    };
 
     public async findAndGenerateToken(credentials: {
         email: string;
         password: string;
     }): Promise<string> {
-        const foundUser = await this.usersModel.findOne({
+        const foundUser = await this.findOne({
             email: credentials.email
         });
 
@@ -75,12 +81,23 @@ export class UsersService {
         );
 
         if (!passwordMatched) {
-            throw new Error("");
+            const passwordDoesNotMatch = this.clubManagerError;
+            passwordDoesNotMatch.name = "User login";
+            passwordDoesNotMatch.message = "wrong password";
+            passwordDoesNotMatch.statusCode = 400;
+            throw passwordDoesNotMatch;
         }
 
-        const token = await sign(foundUser, this.jwtSecret, {
-            expiresIn: "24h"
-        });
+        const token = await sign(
+            {
+                email: foundUser.email,
+                id: foundUser.id
+            },
+            this.jwtSecret,
+            {
+                expiresIn: "24h"
+            }
+        );
 
         return token;
     }
