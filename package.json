@@ -1,0 +1,40 @@
+{
+  "name": "club-manager",
+  "version": "1.0.0",
+  "description": "app to help manage club activities",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rkterungwa16/club-manager.git"
+  },
+  "author": "Terungwa Kombol",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rkterungwa16/club-manager/issues"
+  },
+  "homepage": "https://github.com/rkterungwa16/club-manager#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "typescript": "^3.6.3",
+    "typescript-ioc": "^1.2.5",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.2",
+    "@types/chai-as-promised": "^7.1.2",
+    "@types/cors": "^2.8.6",
+    "@types/dotenv": "^6.1.1",
+    "@types/mocha": "^5.2.7",
+    "@types/winston": "^2.4.4",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "mocha": "^6.2.0",
+    "prettier": "^1.18.2",
+    "ts-node": "^8.3.0",
+    "tslint-config-prettier": "^1.18.0"
+  }
+}
