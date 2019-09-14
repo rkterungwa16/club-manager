@@ -1,12 +1,15 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
+import { Types } from "mongoose";
 import { Inject } from "typescript-ioc";
-import { UsersModelInterface } from "./models";
-import { BcryptHasher, ClubManagerError, UsersService } from "./services";
+import { ClubsModelInterface, UsersModelInterface } from "./models";
+import { BcryptHasher, ClubManagerError, ClubsService, UsersService } from "./services";
 import { IRequest } from "./types";
 
 export class ClubManagerController {
     @Inject
     public usersService!: UsersService;
+    @Inject
+    public clubsService!: ClubsService;
     @Inject
     public errorService!: ClubManagerError;
     @Inject
@@ -57,19 +60,56 @@ export class ClubManagerController {
         }
     };
 
-    public createClub = async (req: Request, res: Response) => {
+    public createClub = async (req: IRequest, res: Response, next: NextFunction) => {
         try {
-            // const { booksCollectionName, searchTerm } = req.body;
-            // const searchResult = await this.invertedIndexService.search(searchTerm, booksCollectionName);
-            // return res.status(200).send({
-            //     message: "Successful search result",
-            //     searchResult,
-            // });
-        } catch (err) {
-            return res.status(400).send({
-                message: "bad request",
-                err
+            const { id } = req.currentUser as { id: string };
+            const club = await this.clubsService.createClub({ owner: id } as ClubsModelInterface);
+            const populated = await club.populate("owner", "name email").execPopulate();
+            return res.status(201).send({
+                message: "Successfully created club",
+                club: populated,
             });
+        } catch (err) {
+            next(err)
         }
     };
+
+    public findOneClub = async (req: IRequest, res: Response, next: NextFunction) => {
+        try {
+            const { clubId } = req.params;
+            if (!clubId) {
+                const missingParam = this.errorService
+                missingParam.name = "Get a club details";
+                missingParam.message = "Missing club id";
+                missingParam.statusCode = 400;
+                throw missingParam;
+            }
+            const club = await this.clubsService.findById(clubId) as ClubsModelInterface;
+            if (!club) {
+                const clubDoesNotExist = this.errorService;
+                clubDoesNotExist.name = "Get a club details";
+                clubDoesNotExist.statusCode = 400;
+                clubDoesNotExist.message = "Club does not exist";
+                throw clubDoesNotExist;
+            }
+            const populated = await club
+                .populate("owner", "email name")
+                .populate("members", "name email")
+                .execPopulate();
+            return res.status(201).send({
+                message: "Club find Successful",
+                club: populated
+            });
+        } catch (err) {
+            if (!err.statusCode) {
+                const somethingWentWrong = this.errorService;
+                somethingWentWrong.message = "something went wrong contact support";
+                somethingWentWrong.name = "Get a club details";
+                somethingWentWrong.statusCode = 500;
+                throw somethingWentWrong;
+
+            }
+            next(err);
+        }
+    }
 }

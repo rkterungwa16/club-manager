@@ -6,8 +6,9 @@ import {
     RegisterationRequestBodyValidator
 } from "./middlewares";
 
-const router = express.Router();
+import { authenticate } from "./middlewares";
 
+const router = express.Router();
 export class ClubManagerRoutes {
     @Inject
     private clubManagerController!: ClubManagerController;
@@ -29,7 +30,8 @@ export class ClubManagerRoutes {
                 this.validateLoginInput.validate,
                 this.clubManagerController.login
             );
-        router.route("/invite").post(this.clubManagerController.createClub);
+        router.route("/create-club").post(authenticate, this.clubManagerController.createClub);
+        router.get("/club/:clubId", authenticate, this.clubManagerController.findOneClub);
         return router;
-    }
+    } // /order/cancel/:orderId
 }

@@ -22,7 +22,11 @@ class UsersSchema {
             password: {
                 type: String,
                 required: true
-            }
+            },
+            memberOf : [{
+                type: Schema.Types.ObjectId,
+                ref: 'Clubs'
+            }]
         });
     }
 }
