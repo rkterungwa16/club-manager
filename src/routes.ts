@@ -47,10 +47,15 @@ export class ClubManagerRoutes {
             authenticate,
             this.clubManagerController.sendClubInvite
         );
-        router.post(
+        router.patch(
             "/add-member",
             authenticate,
             this.clubManagerController.addClubMember
+        )
+        router.delete(
+            "/remove-member/:clubId/:memberId",
+            authenticate,
+            this.clubManagerController.removeClubMember
         )
         return router;
     }

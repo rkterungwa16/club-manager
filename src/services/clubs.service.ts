@@ -101,4 +101,18 @@ export class ClubsService extends DefaultModelService<ClubsModelInterface> {
         }
         return true;
     }
+
+    public async removeClubMember(clubId: string, memberId: string) {
+        const club = await this.findClubById(clubId);
+        if (!club.members.includes(memberId)) {
+            const notAMember = this.errorService;
+            notAMember.message = "Not a member of this club";
+            notAMember.statusCode = 422;
+            throw notAMember;
+        }
+        const memberIndex = club.members.indexOf(memberId);
+        club.members.splice(memberIndex, 1);
+        await club.save();
+        return club;
+    }
 }

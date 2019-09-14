@@ -207,15 +207,42 @@ export class ClubManagerController {
             const token = this.clubsService.verifyInviteToken(req.body.inviteToken);
             const isRegistered = await this.usersService.findUserByEmail(token.recieverEmail) as UsersModelInterface;
             const modifiedClub = await this.clubsService.addClubMember(token.clubId, isRegistered.id);
-            modifiedClub
+            const populated = await modifiedClub
                 .populate("owner", "name email")
                 .populate("members", "name email")
                 .execPopulate()
             return res.status(200).send({
                 message: "Invite has been sent",
-                club: modifiedClub
+                club: populated
             });
         } catch (err) {
+            next(err);
+        }
+    }
+
+    public removeClubMember = async (req: IRequest, res: Response, next: NextFunction) => {
+        try {
+            const {
+                memberId,
+                clubId
+            } = req.params
+            if (!memberId && !clubId) {
+                const missingParams = this.errorService;
+                missingParams.message = "Member id is missing";
+                missingParams.statusCode = 400;
+                throw missingParams;
+            }
+            await this.clubsService.checkOwner(req.params.memberId);
+            const isRemoved = await this.clubsService.removeClubMember(clubId, memberId);
+            const populated = await isRemoved
+                .populate("owner", "name email")
+                .populate("members", "name email")
+                .execPopulate()
+            return res.status(200).send({
+                message: "Invite has been sent",
+                club: populated
+            });
+        } catch(err) {
             next(err);
         }
     }

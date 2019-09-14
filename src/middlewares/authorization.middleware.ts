@@ -13,20 +13,20 @@ export const authenticate = async (
     res: Response,
     next: NextFunction
 ): Promise<void> => {
-    let token = req.query.access_token || req.headers.authorization;
-    if (!token) {
-        const noAccessTokenFound = new ClubManagerError();
-        noAccessTokenFound.message = "No access token found!";
-        noAccessTokenFound.name = "Authentication";
-        noAccessTokenFound.statusCode = 400;
-        throw noAccessTokenFound;
-    }
-
-    if (token.startsWith("Bearer ")) {
-        token = token.slice(7, token.length);
-    }
 
     try {
+        let token = req.query.access_token || req.headers.authorization;
+        if (!token) {
+            const noAccessTokenFound = new ClubManagerError();
+            noAccessTokenFound.message = "No access token found!";
+            noAccessTokenFound.name = "Authentication";
+            noAccessTokenFound.statusCode = 400;
+            throw noAccessTokenFound;
+        }
+
+        if (token.startsWith("Bearer ")) {
+            token = token.slice(7, token.length);
+        }
         const secret = process.env.APP_SECRET as string;
         const user = await jwt.verify(token, secret) as {
             email: string;
@@ -36,7 +36,7 @@ export const authenticate = async (
         next();
     } catch (err) {
         const invalidAccessToken = new ClubManagerError();
-        invalidAccessToken.message = err.message ? err.message: "Not Authorized";
+        invalidAccessToken.message = err.message ? err.message : "Not Authorized";
         invalidAccessToken.statusCode = 401;
         invalidAccessToken.name = "Authentication";
 
