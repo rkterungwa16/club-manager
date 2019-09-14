@@ -11,5 +11,5 @@ export interface UsersModelInterface extends Document {
 export interface ClubsModelInterface extends Document {
     name?: string;
     owner: string;
-    members?: string[];
+    members: string[];
 }

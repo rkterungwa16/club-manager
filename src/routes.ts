@@ -47,6 +47,11 @@ export class ClubManagerRoutes {
             authenticate,
             this.clubManagerController.sendClubInvite
         );
+        router.post(
+            "/add-member",
+            authenticate,
+            this.clubManagerController.addClubMember
+        )
         return router;
     }
 }

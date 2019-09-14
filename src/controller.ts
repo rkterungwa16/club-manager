@@ -1,5 +1,4 @@
 import { NextFunction, Response } from "express";
-import { Types } from "mongoose";
 import { Inject } from "typescript-ioc";
 import { ClubsModelInterface, UsersModelInterface } from "./models";
 import {
@@ -44,6 +43,7 @@ export class ClubManagerController {
             const createdUser = await this.usersService.register(userInfo);
             const createdUserModified = createdUser.toObject();
             delete createdUserModified.password;
+            delete createdUserModified.salt;
             return res.status(201).send({
                 message: "user successfully created",
                 data: createdUserModified
@@ -148,9 +148,12 @@ export class ClubManagerController {
                 email: string;
                 id: string;
             };
-            // const reciever = (await this.usersService.findUserByEmail(
-            //     recieverEmail
-            // )) as UsersModelInterface;
+            // check if user is registered. if true send isRegistered as true else false
+            // on frontend a false will pop reg form, a true will popup a login form
+            // make api to login or register the person. then make api call to add the person as member
+            const reciever = (await this.usersService.findOne({
+                email: recieverEmail
+            })) as UsersModelInterface;
             const club = await this.clubsService.findClubById(
                 clubId
             ) as ClubsModelInterface;
@@ -177,12 +180,43 @@ export class ClubManagerController {
                 messageHtmlContent,
                 messageSubject
             });
-            return res.status(201).send({
+            return res.status(200).send({
                 message: "Invite has been sent",
-                token
+                token,
+                isRegistered: reciever ? true : false
             });
         } catch (err) {
             next(err);
         }
     };
+
+    public addClubMember = async (req: IRequest, res: Response, next: NextFunction) => {
+        try {
+            // check if
+            if (!req.body.inviteToken) {
+                const noInviteToken = this.errorService;
+                noInviteToken.message = "must contain invite token";
+                noInviteToken.statusCode = 400;
+                throw noInviteToken;
+            }
+            const {
+                id,
+                email
+            } = req.currentUser as { id: string; email: string };
+            await this.clubsService.checkOwner(id);
+            const token = this.clubsService.verifyInviteToken(req.body.inviteToken);
+            const isRegistered = await this.usersService.findUserByEmail(token.recieverEmail) as UsersModelInterface;
+            const modifiedClub = await this.clubsService.addClubMember(token.clubId, isRegistered.id);
+            modifiedClub
+                .populate("owner", "name email")
+                .populate("members", "name email")
+                .execPopulate()
+            return res.status(200).send({
+                message: "Invite has been sent",
+                club: modifiedClub
+            });
+        } catch (err) {
+            next(err);
+        }
+    }
 }

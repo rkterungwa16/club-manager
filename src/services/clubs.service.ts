@@ -1,5 +1,5 @@
 import * as dotenv from "dotenv";
-import { sign } from "jsonwebtoken";
+import { sign, verify } from "jsonwebtoken";
 import { Inject } from "typescript-ioc";
 import { Clubs, ClubsModelInterface } from "../models";
 import { DefaultModelService } from "./default.model.service";
@@ -38,7 +38,7 @@ export class ClubsService extends DefaultModelService<ClubsModelInterface> {
                 throw clubNotFoundError;
             }
             return club;
-        } catch(err) {
+        } catch (err) {
             const somethingWentWrong = this.errorService;
             somethingWentWrong.message = "please contact support";
             somethingWentWrong.name = "find club";
@@ -55,5 +55,50 @@ export class ClubsService extends DefaultModelService<ClubsModelInterface> {
             this.jwtSecret,
             { expiresIn: 60 * 15 }
         );
+    }
+
+    public verifyInviteToken(token: string): { recieverEmail: string; clubId: string } {
+
+        try {
+            const isVerified = verify(token, this.jwtSecret) as { recieverEmail: string; clubId: string };
+            return isVerified;
+        } catch (err) {
+            const tokenVerification = this.errorService;
+            tokenVerification.message = "Invalid token";
+            tokenVerification.name = "Token Verification";
+            tokenVerification.statusCode = 400;
+            throw tokenVerification;
+        }
+    }
+
+    public async addClubMember(clubId: string, memberId: string) {
+        try {
+            const addedMember = await this.findClubById(clubId);
+            if (addedMember.members.includes(memberId)) {
+                const alreadyAMember = this.errorService;
+                alreadyAMember.message = "Already a member of this club";
+                alreadyAMember.statusCode = 422;
+                throw alreadyAMember;
+            }
+            addedMember.members.push(memberId);
+            addedMember.save();
+
+            // /clubMembers.push(memberId).;
+            return addedMember;
+        } catch(err) {
+            throw(err);
+        }
+    }
+    public async checkOwner (id: string): Promise<boolean> {
+        const isOwner = this.findOne({
+            owner: id
+        });
+        if (!isOwner) {
+            const notClubOwner = this.errorService;
+            notClubOwner.message = "Current user is not owner of club";
+            notClubOwner.statusCode = 403;
+            throw notClubOwner;
+        }
+        return true;
     }
 }
