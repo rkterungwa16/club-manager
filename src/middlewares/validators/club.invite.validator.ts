@@ -6,19 +6,16 @@ import { ClubManagerError } from "../../services";
 
 import { IValidator, RequestBodySchemaProperties } from "../types";
 
-export class RegisterationRequestBodyValidator implements IValidator {
+export class ClubInviteRequestBodyValidator implements IValidator {
     @Inject
     public errorService!: ClubManagerError;
     public requiredProperties: RequestBodySchemaProperties;
     constructor() {
         this.requiredProperties = {
-            password: {
+            recieverEmail: {
                 type: "string"
             },
-            email: {
-                type: "string"
-            },
-            name: {
+            clubId: {
                 type: "string"
             }
         };
@@ -41,7 +38,6 @@ export class RegisterationRequestBodyValidator implements IValidator {
                 reqBodyPropCheckError.statusCode = 400;
                 throw reqBodyPropCheckError;
             }
-
             if (!req.body[prop]) {
                 reqBodyPropCheckError.message = `${prop} should not be empty`;
                 reqBodyPropCheckError.statusCode = 400;
@@ -49,15 +45,8 @@ export class RegisterationRequestBodyValidator implements IValidator {
             }
         }
 
-        if (!validator.isEmail(req.body.email)) {
+        if (!validator.isEmail(req.body.recieverEmail)) {
             reqBodyPropCheckError.message = "User has an invalid email";
-            reqBodyPropCheckError.statusCode = 400;
-            throw reqBodyPropCheckError;
-        }
-
-        if (req.body.password.length < 6) {
-            reqBodyPropCheckError.message =
-                "Password length must be greater than or equal to 6";
             reqBodyPropCheckError.statusCode = 400;
             throw reqBodyPropCheckError;
         }

@@ -16,10 +16,12 @@ class ClubsSchema {
                 ref: "Users",
                 required: true
             },
-            members : [{
-                type: Schema.Types.ObjectId,
-                ref: 'Users'
-            }]
+            members: [
+                {
+                    type: Schema.Types.ObjectId,
+                    ref: "Users"
+                }
+            ]
         });
     }
 }

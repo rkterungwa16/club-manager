@@ -2,15 +2,18 @@ import * as dotenv from "dotenv";
 import { NextFunction, Response } from "express";
 import jwt from "jsonwebtoken";
 import { promisify } from "util";
-import { ClubManagerError } from "../services"
+import { ClubManagerError } from "../services";
 import { IRequest } from "../types";
 
 dotenv.config();
 const verifyAsync = promisify(jwt.verify);
 
-export const authenticate = async (req: IRequest, res: Response, next: NextFunction): Promise<void> => {
+export const authenticate = async (
+    req: IRequest,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
     let token = req.query.access_token || req.headers.authorization;
-
     if (!token) {
         const noAccessTokenFound = new ClubManagerError();
         noAccessTokenFound.message = "No access token found!";
@@ -25,15 +28,18 @@ export const authenticate = async (req: IRequest, res: Response, next: NextFunct
 
     try {
         const secret = process.env.APP_SECRET as string;
-        const user = await verifyAsync(token, secret) as { email: string, id: string };
+        const user = await jwt.verify(token, secret) as {
+            email: string;
+            id: string;
+        };
         req.currentUser = user;
         next();
     } catch (err) {
         const invalidAccessToken = new ClubManagerError();
-        invalidAccessToken.message = "Not Authorized";
+        invalidAccessToken.message = err.message ? err.message: "Not Authorized";
         invalidAccessToken.statusCode = 401;
-        invalidAccessToken.name = "Authentication"
+        invalidAccessToken.name = "Authentication";
 
-        throw invalidAccessToken;
+        next(invalidAccessToken)
     }
-}
+};

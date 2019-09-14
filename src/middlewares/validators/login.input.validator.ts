@@ -4,12 +4,12 @@ import { Inject } from "typescript-ioc";
 import * as validator from "validator";
 import { ClubManagerError } from "../../services";
 
-import { IValidator, UserRequestBodySchemaProperties } from "../types";
+import { IValidator, RequestBodySchemaProperties } from "../types";
 
 export class LoginRequestBodyValidator implements IValidator {
     @Inject
     public errorService!: ClubManagerError;
-    public requiredProperties: UserRequestBodySchemaProperties;
+    public requiredProperties: RequestBodySchemaProperties;
     constructor() {
         this.requiredProperties = {
             password: {
@@ -35,6 +35,12 @@ export class LoginRequestBodyValidator implements IValidator {
         for (const prop of Object.keys(this.requiredProperties)) {
             if (!Object.keys(req.body).includes(prop)) {
                 reqBodyPropCheckError.message = `${prop} is missing`;
+                reqBodyPropCheckError.statusCode = 400;
+                throw reqBodyPropCheckError;
+            }
+
+            if (!req.body[prop]) {
+                reqBodyPropCheckError.message = `${prop} should not be empty`;
                 reqBodyPropCheckError.statusCode = 400;
                 throw reqBodyPropCheckError;
             }

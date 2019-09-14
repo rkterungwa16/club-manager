@@ -23,10 +23,12 @@ class UsersSchema {
                 type: String,
                 required: true
             },
-            memberOf : [{
-                type: Schema.Types.ObjectId,
-                ref: 'Clubs'
-            }]
+            memberOf: [
+                {
+                    type: Schema.Types.ObjectId,
+                    ref: "Clubs"
+                }
+            ]
         });
     }
 }

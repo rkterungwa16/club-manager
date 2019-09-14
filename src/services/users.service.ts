@@ -88,7 +88,8 @@ export class UsersService extends DefaultModelService<UsersModelInterface> {
             throw passwordDoesNotMatch;
         }
 
-        const token = await sign({
+        const token = await sign(
+            {
                 email: foundUser.email,
                 id: foundUser.id
             },
