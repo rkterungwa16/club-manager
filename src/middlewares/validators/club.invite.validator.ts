@@ -1,16 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 
-import { Inject } from "typescript-ioc";
-import * as validator from "validator";
-import { ClubManagerError } from "../../services";
+import { RequestBodySchemaProperties } from "../types";
+import { Validator } from "./validator";
 
-import { IValidator, RequestBodySchemaProperties } from "../types";
-
-export class ClubInviteRequestBodyValidator implements IValidator {
-    @Inject
-    public errorService!: ClubManagerError;
+export class ClubInviteRequestBodyValidator extends Validator {
     public requiredProperties: RequestBodySchemaProperties;
     constructor() {
+        super();
         this.requiredProperties = {
             recieverEmail: {
                 type: "string"
@@ -25,31 +21,11 @@ export class ClubInviteRequestBodyValidator implements IValidator {
         res: Response,
         next: NextFunction
     ): void => {
-        const reqBodyPropCheckError = this.errorService;
-        reqBodyPropCheckError.name = "Request body validation";
-        if (!Object.keys(req.body).length) {
-            reqBodyPropCheckError.message = "Missing properties";
-            reqBodyPropCheckError.statusCode = 400;
-            throw reqBodyPropCheckError;
-        }
-        for (const prop of Object.keys(this.requiredProperties)) {
-            if (!Object.keys(req.body).includes(prop)) {
-                reqBodyPropCheckError.message = `${prop} is missing`;
-                reqBodyPropCheckError.statusCode = 400;
-                throw reqBodyPropCheckError;
-            }
-            if (!req.body[prop]) {
-                reqBodyPropCheckError.message = `${prop} should not be empty`;
-                reqBodyPropCheckError.statusCode = 400;
-                throw reqBodyPropCheckError;
-            }
-        }
 
-        if (!validator.isEmail(req.body.recieverEmail)) {
-            reqBodyPropCheckError.message = "User has an invalid email";
-            reqBodyPropCheckError.statusCode = 400;
-            throw reqBodyPropCheckError;
-        }
+        this.checkEmptyRequestBody(req.body);
+        this.checkMissingRequestBodyProperties(req.body);
+
+        this.validateEmail(req.body.email);
 
         next();
     };

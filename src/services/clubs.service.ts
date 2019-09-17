@@ -1,14 +1,11 @@
 import * as dotenv from "dotenv";
 import { sign, verify } from "jsonwebtoken";
-import { Inject } from "typescript-ioc";
 import { Clubs, ClubsModelInterface } from "../models";
 import { DefaultModelService } from "./default.model.service";
 import { ClubManagerError } from "./error.service";
 
 dotenv.config();
 export class ClubsService extends DefaultModelService<ClubsModelInterface> {
-    @Inject
-    public errorService!: ClubManagerError;
     private jwtSecret: string;
 
     constructor() {
@@ -31,18 +28,18 @@ export class ClubsService extends DefaultModelService<ClubsModelInterface> {
         try {
             const club = await this.findById(id);
             if (!club) {
-                const clubNotFoundError = this.errorService;
-                clubNotFoundError.message = "club does not exist";
-                clubNotFoundError.statusCode = 400;
-                clubNotFoundError.name = "Find Club";
-                throw clubNotFoundError;
+                throw new ClubManagerError({
+                    message: "club does not exist",
+                    statusCode: 400,
+                    name: "Find Club"
+                });
             }
             return club;
         } catch (err) {
-            const somethingWentWrong = this.errorService;
-            somethingWentWrong.message = "please contact support";
-            somethingWentWrong.name = "find club";
-            throw somethingWentWrong;
+            throw new ClubManagerError({
+                message: "please contact support",
+                name: "Find Club"
+            });
         }
     }
 
@@ -63,11 +60,11 @@ export class ClubsService extends DefaultModelService<ClubsModelInterface> {
             const isVerified = verify(token, this.jwtSecret) as { recieverEmail: string; clubId: string };
             return isVerified;
         } catch (err) {
-            const tokenVerification = this.errorService;
-            tokenVerification.message = "Invalid token";
-            tokenVerification.name = "Token Verification";
-            tokenVerification.statusCode = 400;
-            throw tokenVerification;
+            throw new ClubManagerError({
+                message: "Invalid token",
+                statusCode: 400,
+                name: "Token Verification"
+            });
         }
     }
 
@@ -75,10 +72,11 @@ export class ClubsService extends DefaultModelService<ClubsModelInterface> {
         try {
             const addedMember = await this.findClubById(clubId);
             if (addedMember.members.includes(memberId)) {
-                const alreadyAMember = this.errorService;
-                alreadyAMember.message = "Already a member of this club";
-                alreadyAMember.statusCode = 422;
-                throw alreadyAMember;
+                throw new ClubManagerError({
+                    message: "Already a member of this club",
+                    statusCode: 422,
+                    name: "Add Club Member"
+                });
             }
             addedMember.members.push(memberId);
             addedMember.save();
@@ -94,10 +92,11 @@ export class ClubsService extends DefaultModelService<ClubsModelInterface> {
             owner: id
         });
         if (!isOwner) {
-            const notClubOwner = this.errorService;
-            notClubOwner.message = "Current user is not owner of club";
-            notClubOwner.statusCode = 403;
-            throw notClubOwner;
+            throw new ClubManagerError({
+                message: "Current user is not owner of club",
+                statusCode: 403,
+                name: "Club Owner"
+            });
         }
         return true;
     }
@@ -105,10 +104,11 @@ export class ClubsService extends DefaultModelService<ClubsModelInterface> {
     public async removeClubMember(clubId: string, memberId: string) {
         const club = await this.findClubById(clubId);
         if (!club.members.includes(memberId)) {
-            const notAMember = this.errorService;
-            notAMember.message = "Not a member of this club";
-            notAMember.statusCode = 422;
-            throw notAMember;
+            throw new ClubManagerError({
+                message: "Not a member of this club",
+                statusCode: 422,
+                name: "Remove Club Member"
+            });
         }
         const memberIndex = club.members.indexOf(memberId);
         club.members.splice(memberIndex, 1);

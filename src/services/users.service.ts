@@ -10,8 +10,6 @@ dotenv.config();
 export class UsersService extends DefaultModelService<UsersModelInterface> {
     @Inject
     public passwordHashService!: BcryptHasher;
-    @Inject
-    public clubManagerError!: ClubManagerError;
     private jwtSecret: string;
 
     constructor() {
@@ -30,10 +28,11 @@ export class UsersService extends DefaultModelService<UsersModelInterface> {
     ): Promise<UsersModelInterface | null> {
         const user = await this.findOne({ email });
         if (!user) {
-            const userNotFoundError = this.clubManagerError;
-            userNotFoundError.message = "user does not exist";
-            userNotFoundError.statusCode = 400;
-            throw userNotFoundError;
+            throw new ClubManagerError({
+                message: "user does not exist",
+                name: "Find User",
+                statusCode: 400
+            });
         }
 
         return user;
@@ -47,11 +46,11 @@ export class UsersService extends DefaultModelService<UsersModelInterface> {
                 email
             });
             if (foundUser) {
-                const userAlreadyExistsError = this.clubManagerError;
-                userAlreadyExistsError.name = "User registration";
-                userAlreadyExistsError.message = "User Already Exists";
-                userAlreadyExistsError.statusCode = 400;
-                throw userAlreadyExistsError;
+                throw new ClubManagerError({
+                    message: "User Already Exists",
+                    name: "User registration",
+                    statusCode: 400
+                });
             }
             return true;
         } catch (err) {
@@ -67,12 +66,13 @@ export class UsersService extends DefaultModelService<UsersModelInterface> {
             email: credentials.email
         });
 
-        const userDoesNotExistError = this.clubManagerError;
-        userDoesNotExistError.name = "User Login";
+
         if (!foundUser) {
-            userDoesNotExistError.message = "User does not exist";
-            userDoesNotExistError.statusCode = 400;
-            throw userDoesNotExistError;
+            throw new ClubManagerError({
+                message: "User does not exist",
+                name: "User Login",
+                statusCode: 400
+            });
         }
 
         const passwordMatched = await this.passwordHashService.comparePassword(
@@ -81,11 +81,11 @@ export class UsersService extends DefaultModelService<UsersModelInterface> {
         );
 
         if (!passwordMatched) {
-            const passwordDoesNotMatch = this.clubManagerError;
-            passwordDoesNotMatch.name = "User login";
-            passwordDoesNotMatch.message = "wrong password";
-            passwordDoesNotMatch.statusCode = 400;
-            throw passwordDoesNotMatch;
+            throw new ClubManagerError({
+                message: "wrong password",
+                name: "User login",
+                statusCode: 400
+            });
         }
 
         const token = await sign(

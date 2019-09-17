@@ -16,8 +16,6 @@ export class ClubManagerController {
     @Inject
     public clubsService!: ClubsService;
     @Inject
-    public errorService!: ClubManagerError;
-    @Inject
     public passwordHasher!: BcryptHasher;
     @Inject
     private emailService!: EmailService;
@@ -100,22 +98,15 @@ export class ClubManagerController {
         try {
             const { clubId } = req.params;
             if (!clubId) {
-                const missingParam = this.errorService;
-                missingParam.name = "Get a club details";
-                missingParam.message = "Missing club id";
-                missingParam.statusCode = 400;
-                throw missingParam;
+                throw new ClubManagerError({
+                    message: "Missing club id",
+                    name: "Get a club details",
+                    statusCode: 400
+                });
             }
             const club = (await this.clubsService.findById(
                 clubId
             )) as ClubsModelInterface;
-            if (!club) {
-                const clubDoesNotExist = this.errorService;
-                clubDoesNotExist.name = "Get a club details";
-                clubDoesNotExist.statusCode = 400;
-                clubDoesNotExist.message = "Club does not exist";
-                throw clubDoesNotExist;
-            }
             const populated = await club
                 .populate("owner", "email name")
                 .populate("members", "name email")
@@ -126,12 +117,11 @@ export class ClubManagerController {
             });
         } catch (err) {
             if (!err.statusCode) {
-                const somethingWentWrong = this.errorService;
-                somethingWentWrong.message =
-                    "something went wrong contact support";
-                somethingWentWrong.name = "Get a club details";
-                somethingWentWrong.statusCode = 500;
-                throw somethingWentWrong;
+                throw new ClubManagerError({
+                    message: "something went wrong contact support",
+                    name: "Get a club details",
+                    statusCode: 500
+                });
             }
             next(err);
         }
@@ -194,10 +184,11 @@ export class ClubManagerController {
         try {
             // check if
             if (!req.body.inviteToken) {
-                const noInviteToken = this.errorService;
-                noInviteToken.message = "must contain invite token";
-                noInviteToken.statusCode = 400;
-                throw noInviteToken;
+                throw new ClubManagerError({
+                    message: "must contain invite token",
+                    name: "Add club member",
+                    statusCode: 400
+                });
             }
             const {
                 id,
@@ -227,10 +218,11 @@ export class ClubManagerController {
                 clubId
             } = req.params
             if (!memberId && !clubId) {
-                const missingParams = this.errorService;
-                missingParams.message = "Member id is missing";
-                missingParams.statusCode = 400;
-                throw missingParams;
+                throw new ClubManagerError({
+                    message: "Member id is missing",
+                    name: "Remove club member",
+                    statusCode: 400
+                });
             }
             await this.clubsService.checkOwner(req.params.memberId);
             const isRemoved = await this.clubsService.removeClubMember(clubId, memberId);

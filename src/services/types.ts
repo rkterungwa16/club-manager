@@ -3,3 +3,9 @@ export interface PasswordHashService<T = string> {
     comparePassword(providedPass: T, storedPass: T): Promise<boolean>;
     saltPassword(): Promise<T>;
 }
+
+export interface ErrorDetails {
+    message?: string;
+    statusCode?: number;
+    name?: string;
+}

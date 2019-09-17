@@ -1,12 +1,10 @@
 import * as dotenv from "dotenv";
 import { NextFunction, Response } from "express";
 import jwt from "jsonwebtoken";
-import { promisify } from "util";
 import { ClubManagerError } from "../services";
 import { IRequest } from "../types";
 
 dotenv.config();
-const verifyAsync = promisify(jwt.verify);
 
 export const authenticate = async (
     req: IRequest,
@@ -17,11 +15,11 @@ export const authenticate = async (
     try {
         let token = req.query.access_token || req.headers.authorization;
         if (!token) {
-            const noAccessTokenFound = new ClubManagerError();
-            noAccessTokenFound.message = "No access token found!";
-            noAccessTokenFound.name = "Authentication";
-            noAccessTokenFound.statusCode = 400;
-            throw noAccessTokenFound;
+            throw new ClubManagerError({
+                message: "No access token found!",
+                statusCode: 400,
+                name: "Authentication"
+            });
         }
 
         if (token.startsWith("Bearer ")) {
@@ -35,11 +33,10 @@ export const authenticate = async (
         req.currentUser = user;
         next();
     } catch (err) {
-        const invalidAccessToken = new ClubManagerError();
-        invalidAccessToken.message = err.message ? err.message : "Not Authorized";
-        invalidAccessToken.statusCode = 401;
-        invalidAccessToken.name = "Authentication";
-
-        next(invalidAccessToken)
+        next(new ClubManagerError({
+            message: err.message ? err.message : "Not Authorized!",
+            statusCode: 401,
+            name: "Authentication"
+        }))
     }
 };
