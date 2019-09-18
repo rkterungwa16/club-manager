@@ -144,9 +144,9 @@ export class ClubManagerController {
             const reciever = (await this.usersService.findOne({
                 email: recieverEmail
             })) as UsersModelInterface;
-            const club = await this.clubsService.findClubById(
+            const club = (await this.clubsService.findClubById(
                 clubId
-            ) as ClubsModelInterface;
+            )) as ClubsModelInterface;
 
             const token = await this.clubsService.generateToken(
                 club.id,
@@ -180,7 +180,11 @@ export class ClubManagerController {
         }
     };
 
-    public addClubMember = async (req: IRequest, res: Response, next: NextFunction) => {
+    public addClubMember = async (
+        req: IRequest,
+        res: Response,
+        next: NextFunction
+    ) => {
         try {
             // check if
             if (!req.body.inviteToken) {
@@ -190,18 +194,25 @@ export class ClubManagerController {
                     statusCode: 400
                 });
             }
-            const {
-                id,
-                email
-            } = req.currentUser as { id: string; email: string };
+            const { id, email } = req.currentUser as {
+                id: string;
+                email: string;
+            };
             await this.clubsService.checkOwner(id);
-            const token = this.clubsService.verifyInviteToken(req.body.inviteToken);
-            const isRegistered = await this.usersService.findUserByEmail(token.recieverEmail) as UsersModelInterface;
-            const modifiedClub = await this.clubsService.addClubMember(token.clubId, isRegistered.id);
+            const token = this.clubsService.verifyInviteToken(
+                req.body.inviteToken
+            );
+            const isRegistered = (await this.usersService.findUserByEmail(
+                token.recieverEmail
+            )) as UsersModelInterface;
+            const modifiedClub = await this.clubsService.addClubMember(
+                token.clubId,
+                isRegistered.id
+            );
             const populated = await modifiedClub
                 .populate("owner", "name email")
                 .populate("members", "name email")
-                .execPopulate()
+                .execPopulate();
             return res.status(200).send({
                 message: "Invite has been sent",
                 club: populated
@@ -209,14 +220,15 @@ export class ClubManagerController {
         } catch (err) {
             next(err);
         }
-    }
+    };
 
-    public removeClubMember = async (req: IRequest, res: Response, next: NextFunction) => {
+    public removeClubMember = async (
+        req: IRequest,
+        res: Response,
+        next: NextFunction
+    ) => {
         try {
-            const {
-                memberId,
-                clubId
-            } = req.params
+            const { memberId, clubId } = req.params;
             if (!memberId && !clubId) {
                 throw new ClubManagerError({
                     message: "Member id is missing",
@@ -225,17 +237,20 @@ export class ClubManagerController {
                 });
             }
             await this.clubsService.checkOwner(req.params.memberId);
-            const isRemoved = await this.clubsService.removeClubMember(clubId, memberId);
+            const isRemoved = await this.clubsService.removeClubMember(
+                clubId,
+                memberId
+            );
             const populated = await isRemoved
                 .populate("owner", "name email")
                 .populate("members", "name email")
-                .execPopulate()
+                .execPopulate();
             return res.status(200).send({
                 message: "Invite has been sent",
                 club: populated
             });
-        } catch(err) {
+        } catch (err) {
             next(err);
         }
-    }
+    };
 }

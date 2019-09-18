@@ -11,7 +11,6 @@ export const authenticate = async (
     res: Response,
     next: NextFunction
 ): Promise<void> => {
-
     try {
         let token = req.query.access_token || req.headers.authorization;
         if (!token) {
@@ -26,17 +25,19 @@ export const authenticate = async (
             token = token.slice(7, token.length);
         }
         const secret = process.env.APP_SECRET as string;
-        const user = await jwt.verify(token, secret) as {
+        const user = (await jwt.verify(token, secret)) as {
             email: string;
             id: string;
         };
         req.currentUser = user;
         next();
     } catch (err) {
-        next(new ClubManagerError({
-            message: err.message ? err.message : "Not Authorized!",
-            statusCode: 401,
-            name: "Authentication"
-        }))
+        next(
+            new ClubManagerError({
+                message: err.message ? err.message : "Not Authorized!",
+                statusCode: 401,
+                name: "Authentication"
+            })
+        );
     }
 };

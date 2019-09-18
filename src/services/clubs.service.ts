@@ -16,7 +16,6 @@ export class ClubsService extends DefaultModelService<ClubsModelInterface> {
     public async createClub(
         credentials: ClubsModelInterface
     ): Promise<ClubsModelInterface> {
-
         try {
             return await this.create(credentials);
         } catch (err) {
@@ -54,10 +53,14 @@ export class ClubsService extends DefaultModelService<ClubsModelInterface> {
         );
     }
 
-    public verifyInviteToken(token: string): { recieverEmail: string; clubId: string } {
-
+    public verifyInviteToken(
+        token: string
+    ): { recieverEmail: string; clubId: string } {
         try {
-            const isVerified = verify(token, this.jwtSecret) as { recieverEmail: string; clubId: string };
+            const isVerified = verify(token, this.jwtSecret) as {
+                recieverEmail: string;
+                clubId: string;
+            };
             return isVerified;
         } catch (err) {
             throw new ClubManagerError({
@@ -83,11 +86,11 @@ export class ClubsService extends DefaultModelService<ClubsModelInterface> {
 
             // /clubMembers.push(memberId).;
             return addedMember;
-        } catch(err) {
-            throw(err);
+        } catch (err) {
+            throw err;
         }
     }
-    public async checkOwner (id: string): Promise<boolean> {
+    public async checkOwner(id: string): Promise<boolean> {
         const isOwner = this.findOne({
             owner: id
         });

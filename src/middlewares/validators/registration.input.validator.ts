@@ -1,34 +1,21 @@
 import { NextFunction, Request, Response } from "express";
 
 import { RequestBodySchemaProperties } from "../types";
-import { Validator } from "./validator"
+import { Validator } from "./validator";
 
-export class RegisterationRequestBodyValidator extends Validator {
+export class RegisterationRequestBodyProps {
     public requiredProperties: RequestBodySchemaProperties;
     constructor() {
-        super();
         this.requiredProperties = {
             password: {
-                type: "string"
+                type: "password"
             },
             email: {
-                type: "string"
+                type: "email"
             },
             name: {
-                type: "string"
+                type: "text"
             }
         };
     }
-    public validate = (
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ): void => {
-
-        this.checkEmptyRequestBody(req.body);
-        this.checkMissingRequestBodyProperties(req.body);
-        this.validateEmail(req.body.email);
-        this.validatePassword(req.body.password);
-        next();
-    };
 }

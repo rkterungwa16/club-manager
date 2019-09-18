@@ -8,5 +8,7 @@ export interface RequestBodySchemaProperties {
 
 export interface IValidator {
     requiredProperties: RequestBodySchemaProperties;
-    validate(req: Request, res: Response, next: NextFunction): void;
+    validate(
+        validationType: string
+    ): (req: Request, res: Response, next: NextFunction) => void;
 }

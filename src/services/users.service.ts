@@ -66,7 +66,6 @@ export class UsersService extends DefaultModelService<UsersModelInterface> {
             email: credentials.email
         });
 
-
         if (!foundUser) {
             throw new ClubManagerError({
                 message: "User does not exist",

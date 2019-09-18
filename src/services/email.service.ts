@@ -54,13 +54,16 @@ export class EmailService {
                 });
             mailRequest
                 .then(result => {
-                    resolve(result.body)
+                    resolve(result.body);
                 })
                 .catch(err => {
-                    const emailError = this.errorService;
-                    emailError.message = err.ErrorMessage;
-                    emailError.statusCode = err.statusCode;
-                    reject(emailError);
+                    reject(
+                        new ClubManagerError({
+                            message: err.ErrorMessage,
+                            statusCode: err.statusCode,
+                            name: "Send Email"
+                        })
+                    );
                 });
         });
     }

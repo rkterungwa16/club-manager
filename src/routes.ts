@@ -1,11 +1,7 @@
 import express from "express";
 import { Inject } from "typescript-ioc";
 import { ClubManagerController } from "./controller";
-import {
-    ClubInviteRequestBodyValidator,
-    LoginRequestBodyValidator,
-    RegisterationRequestBodyValidator
-} from "./middlewares";
+import { Validator } from "./middlewares";
 
 import { authenticate } from "./middlewares";
 
@@ -14,21 +10,17 @@ export class ClubManagerRoutes {
     @Inject
     private clubManagerController!: ClubManagerController;
     @Inject
-    private validateRegistrationInput!: RegisterationRequestBodyValidator;
-    @Inject
-    private validateLoginInput!: LoginRequestBodyValidator;
-    @Inject
-    private validateClubInviteInput!: ClubInviteRequestBodyValidator;
+    private validator!: Validator;
 
     get routes() {
         router.post(
             "/register",
-            this.validateRegistrationInput.validate,
+            this.validator.validate("register"),
             this.clubManagerController.register
         );
         router.post(
             "/login",
-            this.validateLoginInput.validate,
+            this.validator.validate("login"),
             this.clubManagerController.login
         );
         router.post(
@@ -43,7 +35,7 @@ export class ClubManagerRoutes {
         );
         router.post(
             "/send-invite",
-            this.validateClubInviteInput.validate,
+            this.validator.validate("clubInvite"),
             authenticate,
             this.clubManagerController.sendClubInvite
         );
@@ -51,12 +43,12 @@ export class ClubManagerRoutes {
             "/add-member",
             authenticate,
             this.clubManagerController.addClubMember
-        )
+        );
         router.delete(
             "/remove-member/:clubId/:memberId",
             authenticate,
             this.clubManagerController.removeClubMember
-        )
+        );
         return router;
     }
 }
