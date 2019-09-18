@@ -1,6 +1,8 @@
 # Club Manager Rest Api
 Club Manager Rest Api Example. Using Node.js, Express, and MongoDb.
 
+[![Maintainability](https://api.codeclimate.com/v1/badges/76f51aadb63297f67f66/maintainability)](https://codeclimate.com/github/rkterungwa16/club-manager/maintainability)
+
 
 ## Requirements
 
