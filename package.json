@@ -29,7 +29,7 @@
     "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",
     "mongodb": "^3.3.2",
-    "mongoose": "^5.7.0",
+    "mongoose": "^5.7.5",
     "node-mailjet": "^3.3.1",
     "typescript": "^3.6.3",
     "typescript-ioc": "^1.2.5",
